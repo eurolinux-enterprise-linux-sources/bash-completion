@@ -5,7 +5,7 @@
 
 Name:           bash-completion
 Version:        2.1
-Release:        5%{?dist}
+Release:        6%{?dist}
 Epoch:          1
 Summary:        Programmable completion for Bash
 
@@ -15,6 +15,7 @@ Source0:        http://bash-completion.alioth.debian.org/files/%{name}-%{version
 Source2:        CHANGES.package.old
 # https://bugzilla.redhat.com/677446, see also noblacklist patch
 Source3:        %{name}-2.0-redefine_filedir.bash
+Source4:        script_list
 # https://bugzilla.redhat.com/677446, see also redefine_filedir source
 Patch0:         %{name}-1.99-noblacklist.patch
 # Commands included in util-linux >= 2.23-rc2
@@ -61,6 +62,12 @@ install -pm 644 completions/_udevadm \
 # NetworkManager >= 0.9.8.0 ships this one:
 rm $RPM_BUILD_ROOT%{_datadir}/bash-completion/completions/nmcli
 %endif
+%if 0%{?rhel} >= 7
+# remove all completions in file script_list
+for script in $(cat %{SOURCE4}); do
+ rm -f $RPM_BUILD_ROOT%{_datadir}/bash-completion/completions/$script
+done
+%endif
 
 install -Dpm 644 %{SOURCE3} \
     $RPM_BUILD_ROOT%{_sysconfdir}/bash_completion.d/redefine_filedir
@@ -90,6 +97,10 @@ exit $result
 
 
 %changelog
+* Fri Nov 1 2013 Petr Stodulka <pstodulk@redhat.com> - 2.1-6
+- Install only available completions (#810343 - comment 15)
+  without "tar" and remove the other.
+
 * Fri Sep 13 2013 Roman Rakus <rrakus@redhat.com> - 2.1-5
 - Added one more missing conditional
   Resolves: #1007839
